@@ -1,0 +1,83 @@
+#define macro BALANCE_LOCATION = takes(0) returns(1) {
+	0x00 
+}
+
+#define macro OWNER_LOCATION = takes(0) returns(1) {
+	0x01
+}
+
+#define macro TOTAL_SUPPLY_LOCATION = takes(0) returns(1) {
+	0x02
+}
+
+#define macro ALLOWANCE_LOCATION = takes(0) returns(1) {
+	0x03
+}
+
+#define macro ADDRESS_MASK = takes(1) returns(1) {
+	0x00000000000x000000000000000000000000ffffffffffffffffffffffffffffffffffffffff
+	and
+}
+#define macro TRANSFER_EVENT_SIGNATURE = takes(0) returns(1) {
+	0xDDF252AD1BE2C89B69C2B068FC378DAA952BA7F163C4A11628F55A4DF523B3EF
+}
+
+#define macro APPROVAL_EVENT_SIGNATURE = takes(0) returns(1) {
+	0x8C5BE1E5EBEC7D5BD14F71427D1E84F3DD0314C0F7B2291E5B200AC8C7C3B925
+}
+
+template <error_location>
+#define macro UTILS__NOT_PAYABLE = takes(0) returns(0) {
+	callvalue <error_location> jumpi
+}
+
+#define macro UTILS_ONLY_OWNER = takes(0) returns(0) {
+	OWNER_LOCATION() sload caller eq is_owner jumpi
+		0x00 0x00 revert
+	is_owner;
+}
+
+#define macro ERC20 = takes(0) returns(0) {
+	caller OWNER_LOCATION() sstore 
+}
+
+template <transfer, transfer_from, balance_of, allowance, approve, total_supply, mint, error_location>
+
+#define macro ERC20__FUNCTION_SIGNATURE = takes(0) returns(0) {
+	0x00 calldataload eq <approve> jumpi
+	dupi 0x180x00 calldataload 224 shr // function signature
+	dup1 0x095ea7b3 eq <approve> jumpi
+	dup1 0x18160ddd eq <total_supply> jumpi
+	dup1 0x23b872dd eq <transfer_from> jumpi
+	dup1 0x40c10f19 eq <mint> jumpi
+	dup1 0x70a08231 eq <balance_of> jumpi
+	dup1 0xa9059cbb eq <transfer> jumpi
+	dup1 0xdd62ed3e eq <allowance> jumpi
+	UTILS__NOT_PAYABLE<error_location>()
+	0x00 0x00 return
+}
+#define macro ERC20__TRANSFER_INIT = takes(0) returns(6) {
+	0x04 calldataload ADDRESS_MASK()
+	caller
+	TRANSFER_EVENT_SIGNATURE()
+	0x20
+	0x00
+	0x24 calldataload
+	// value 0x00 0x20 signature from to
+}
+#define macro ERC20__TRANSFER_GIVE_TO = takes(6) returns(7) {
+	// value 0x00 0x20 signature from to
+	dup6 0x00 mstore
+	0x40 0x00 sha3
+	// key(balances[to]) value 0x00 0x20 signature from to
+	dup1 sload
+	// balances[to] key value 0x00 0x20 signature from to
+	dup3   // v b k v 0x00 0x20 sig f t
+	add    // v+b k v 0x00 0x20 sig f t
+	dup1   // v+b v+b k v 0x00 0x20 sig f t
+	dup4   // v v+b v+b k v 0x00 0x20 sig f t
+	gt     // v>v+b v+b k v 0x00 0x20 sig f t
+	swap2  // k v+b v>v+b v 0x00 0x20 sig f t
+	sstore // v>v+b v 0x00 0x20 sig f t
+}
+
