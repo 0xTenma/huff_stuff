@@ -1,10 +1,18 @@
+// takes field refers to how many EVM stack items this macro consumes.
+// returns refers to how many EVM stack items this macro will add onto the stack
+
 #define macro BALANCE_LOCATION = takes(0) returns(1) {
-	0x00 
+        0x00
+// This will push 0 onto the EVM stack. Associating the first storage "slot" in th smart contract.
+
 }
 
+
 #define macro OWNER_LOCATION = takes(0) returns(1) {
-	0x01
+        0x01
+// Loaction 1 for Contract Owners Location.
 }
+
 
 #define macro TOTAL_SUPPLY_LOCATION = takes(0) returns(1) {
 	0x02
